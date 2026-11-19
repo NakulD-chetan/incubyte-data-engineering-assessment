@@ -14,6 +14,15 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS raw_feed (
     feed_id TEXT PRIMARY KEY, feed_type TEXT NOT NULL, payload TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS landed_file (
+    feed_id TEXT PRIMARY KEY, file_name TEXT NOT NULL, format TEXT NOT NULL,
+    content BLOB NOT NULL, metadata TEXT NOT NULL, status TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rejected_record (
+    feed_id TEXT NOT NULL, line_number INTEGER NOT NULL, raw_record TEXT NOT NULL,
+    errors TEXT NOT NULL, PRIMARY KEY (feed_id, line_number),
+    FOREIGN KEY (feed_id) REFERENCES landed_file(feed_id)
+);
 CREATE TABLE IF NOT EXISTS staged_member (
     feed_id TEXT NOT NULL, row_number INTEGER NOT NULL, member_id TEXT NOT NULL,
     member_name TEXT NOT NULL, country TEXT NOT NULL, enrollment_date TEXT NOT NULL,
@@ -80,17 +89,21 @@ def _parse_optional(value, name, processing_date, required=False):
     return parsed
 
 
-def load_members(db, feed_id, records, processing_date):
+def load_members(db, feed_id, records, processing_date, line_numbers=None):
     """Atomically stage and publish normalized member events; exact feeds replay safely."""
     if not isinstance(processing_date, date) or isinstance(processing_date, datetime):
         raise ValueError("processing_date must be a date")
     if not isinstance(records, list):
         raise ValueError("member feed must be an array")
+    if line_numbers is None:
+        line_numbers = list(range(1, len(records) + 1))
+    if len(line_numbers) != len(records) or len(set(line_numbers)) != len(line_numbers):
+        raise ValueError("line numbers must be unique and match records")
     with db:
         # Processing date is part of the feed identity because it affects derived values.
-        if not _claim_feed(db, feed_id, "member", {"processing_date": processing_date.isoformat(), "records": records}):
+        if not _claim_feed(db, feed_id, "member", {"processing_date": processing_date.isoformat(), "records": records, "line_numbers": line_numbers}):
             return False
-        for index, record in enumerate(records, 1):
+        for index, record in zip(line_numbers, records):
             if not isinstance(record, dict):
                 raise ValueError("member record must be an object")
             member_id, name = record.get("member_id"), record.get("member_name")

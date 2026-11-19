@@ -71,17 +71,25 @@ def normalize(row, country, processing_date):
 
 
 def read_members(path, country, processing_date):
-    results = []
     with Path(path).open(encoding="utf-8-sig", newline="") as source:
-        reader = csv.DictReader(source)
-        missing = set(FIELDS[country].values()) - set(reader.fieldnames or ())
-        if missing:
-            raise ValueError(f"missing columns: {', '.join(sorted(missing))}")
-        for line, row in enumerate(reader, start=2):
-            if None in row or any(value is None for value in row.values()):
-                raise ValueError(f"line {line}: column count does not match header")
-            member, errors = normalize(row, country, processing_date)
-            results.append({"line": line, "member": member, "errors": errors})
+        return read_member_stream(source, country, processing_date)
+
+
+def read_member_stream(source, country, processing_date):
+    results = []
+    reader = csv.DictReader(source)
+    missing = set(FIELDS[country].values()) - set(reader.fieldnames or ())
+    if missing:
+        raise ValueError(f"missing columns: {', '.join(sorted(missing))}")
+    previous_line = reader.line_num
+    for row in reader:
+        start_line = previous_line + 1
+        line = reader.line_num
+        previous_line = line
+        if None in row or any(value is None for value in row.values()):
+            raise ValueError(f"line {line}: column count does not match header")
+        member, errors = normalize(row, country, processing_date)
+        results.append({"line": start_line, "end_line": line, "member": member, "errors": errors})
     return results
 
 

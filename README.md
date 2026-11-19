@@ -41,3 +41,7 @@ This command reads files into memory and does not yet write to the database, res
 ## Latest member profiles
 
 `skypoints.current_members.resolve_members` selects one current profile per global member ID using a source update timestamp. A newer profile in another country replaces the old one. Identical replays are accepted; conflicting profiles with the same timestamp are rejected. Timestamps must include a timezone. This in-memory function illustrates the rule and is not yet connected to the file reader or database. The supplied samples lack global IDs and update timestamps, so they cannot safely demonstrate country moves without additional source information.
+
+## Redemption feeds
+
+`skypoints.redemptions.flatten_feed` validates a partner JSON object and returns one row per transaction. It preserves pending transactions, removes exact duplicate transactions within a feed, and rejects conflicting duplicates or invalid input. An invalid transaction rejects the whole feed; the caller must retain it for investigation. `join_current_members` joins rows to current profiles by member ID and retains unmatched transactions. Transaction uniqueness across separate feeds and database persistence remain to be implemented.

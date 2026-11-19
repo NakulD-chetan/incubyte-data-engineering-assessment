@@ -16,3 +16,7 @@ The `data/samples` directory contains the supplied sample member files for India
 - Normalize and validate member profiles, derive age and stale-member status, and route the latest member record to the appropriate country.
 - Flatten the JSON redemption feed and link it to member profiles.
 - Add tests and document how to run the pipeline and scale the design.
+
+## Design
+
+See [docs/design.md](docs/design.md) for the proposed data flow, validation rules, and open assumptions.

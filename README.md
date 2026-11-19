@@ -10,7 +10,7 @@ A runnable SQLite demonstration, Snowflake-oriented schema, and tests are availa
 
 The `data/samples` directory contains the supplied sample member files for India, the USA, and Australia. They have different headers and date formats; the Australian sample also contains an invalid date. These examples will help guide validation and tests.
 
-## Planned work
+## Assessment scope
 
 - Define landing, staging, country-specific, and redemption tables.
 - Normalize and validate member profiles, derive age and stale-member status, and route the latest member record to the appropriate country.
@@ -71,6 +71,14 @@ To load valid rows from a supplied country CSV, the loader requires an update ti
 python3 -m skypoints.ingest india data/samples/india.csv demo.sqlite --feed-id india-example --processing-date 2024-02-03 --source-updated-at 2024-01-01T00:00:00+00:00 --assume-global-ids
 ```
 
-Invalid CSV rows are reported and skipped; normalized valid rows are loaded atomically. The raw landing table for this path retains normalized accepted records and supplied metadata, not the original CSV bytes or rejected rows. Capture original files and rejected records in durable storage in a production system.
+The loader preserves original file bytes in `landed_file` and row-level errors in `rejected_record`; accepted records retain their original line numbers in staging. A structural file failure leaves the original file marked as failed. Valid records publish atomically; exact feed replays are safe.
+
+To load the specified pipe-delimited header/detail format:
+
+```sh
+python3 -m skypoints.ingest flat data/demo/member_feed.psv demo.sqlite --feed-id flat-example --processing-date 2024-02-03 --source-updated-at 2024-01-01T00:00:00+00:00 --assume-global-ids
+```
+
+The pipe example uses `YYYYMMDD` for enrollment and flight dates and `MMDDYYYY` for DOB, matching the assessment examples. Its header omits postcode although the field table lists it, so postcode is not parsed. Only India, USA, and Australia have configured destinations; other country codes are quarantined until their tables and mapping are agreed. A production source must provide actual update ordering and globally unique IDs rather than the demo assumptions.
 
 The SQLite implementation uses a single current-member table with country views to enforce one current location. The Snowflake DDL instead describes physical country tables. SQLite is for the local demonstration and is not a solution for billions of daily records; production would require the distributed design in `docs/design.md`. Snowflake SQL has not been executed against a Snowflake account. Transaction status changes with the same transaction ID are treated as conflicts until the source defines versioning rules.

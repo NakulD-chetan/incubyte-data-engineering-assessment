@@ -27,3 +27,7 @@ Check required member name, ID, and enrollment date; valid dates and field lengt
 ## Scale and reliability
 
 For billions of daily records, store immutable input files in object storage and process them with a distributed engine or cloud warehouse in batches. Partition input by feed date and source, and use bulk operations rather than one database request per row. Use idempotent loads, run-level counts, monitoring, and safe retries. Country moves and updates need an atomic publish step so a member is not current in two countries at once. The local implementation will demonstrate the rules on sample data; it will not by itself prove production-scale throughput.
+
+## Table definitions
+
+The initial Snowflake DDL is in `sql/schema.sql`. Raw input is stored in a `VARIANT` payload with source metadata. Staging holds normalized fields, derived values, and validation errors. The country tables hold current profiles, and the redemption table holds flattened transactions. Postcodes are stored as text to preserve leading zeroes. Snowflake standard-table primary and unique constraints do not enforce uniqueness, so the load must validate keys and resolve updates explicitly.

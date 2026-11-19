@@ -20,3 +20,7 @@ The `data/samples` directory contains the supplied sample member files for India
 ## Design
 
 See [docs/design.md](docs/design.md) for the proposed data flow, validation rules, and open assumptions.
+
+## Database schema
+
+[`sql/schema.sql`](sql/schema.sql) defines the proposed Snowflake landing, staging, current-member, and redemption tables. The SQL is a starting point; the transformation and validation logic are still to come. Snowflake standard-table uniqueness constraints are not enforced, so the pipeline must check keys explicitly.

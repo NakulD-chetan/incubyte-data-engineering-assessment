@@ -45,3 +45,11 @@ This command reads files into memory and does not yet write to the database, res
 ## Redemption feeds
 
 `skypoints.redemptions.flatten_feed` validates a partner JSON object and returns one row per transaction. It preserves pending transactions, removes exact duplicate transactions within a feed, and rejects conflicting duplicates or invalid input. An invalid transaction rejects the whole feed; the caller must retain it for investigation. `join_current_members` joins rows to current profiles by member ID and retains unmatched transactions. Transaction uniqueness across separate feeds and database persistence remain to be implemented.
+
+## Run the demonstration
+
+```sh
+python3 -m skypoints.demo
+```
+
+The JSON output reports validation results for the supplied country files as of 2023-01-01. It then uses separately labeled synthetic events in `data/demo` to show a member moving from India to the USA, a matched redemption, and an unmatched redemption. These events are illustrative: they are not inferred from the sample files. The demo runs in memory and does not write to Snowflake.

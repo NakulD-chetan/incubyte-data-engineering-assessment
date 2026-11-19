@@ -1,0 +1,8 @@
+[
+  {"member_id": "DEMO-1", "feed_date": "20240203", "redemptions": [
+    {"txn_id": "DEMO-R1", "txn_date": "20240202", "partner": "AeroLink", "miles_redeemed": 12000, "status": "COMPLETED"}
+  ]},
+  {"member_id": "DEMO-3", "feed_date": "20240203", "redemptions": [
+    {"txn_id": "DEMO-R2", "txn_date": "20240202", "partner": "AeroLink", "miles_redeemed": 5000, "status": "PENDING"}
+  ]}
+]

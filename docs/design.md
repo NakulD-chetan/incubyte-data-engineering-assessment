@@ -31,3 +31,7 @@ For billions of daily records, store immutable input files in object storage and
 ## Table definitions
 
 The initial Snowflake DDL is in `sql/schema.sql`. Raw input is stored in a `VARIANT` payload with source metadata. Staging holds normalized fields, derived values, and validation errors. The country tables hold current profiles, and the redemption table holds flattened transactions. Postcodes are stored as text to preserve leading zeroes. Snowflake standard-table primary and unique constraints do not enforce uniqueness, so the load must validate keys and resolve updates explicitly.
+
+## Local implementation
+
+The runnable SQLite pipeline uses a single current-member table with country views and a unique member ID, so updating a member's country is atomic. It stores accepted normalized member events in staging, retains redemption observations by feed, and rejects conflicting replays inside a transaction. The sample CSV loader reports rejected rows but does not persist the original file or rejected records. Its supplied update timestamp and global-ID assumption are illustrative; actual source metadata and durable quarantine are required for production. Age and staleness are snapshots at each processing date, so a production system must schedule refreshes if current values are required between profile updates.

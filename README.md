@@ -37,3 +37,7 @@ python3 -m skypoints.members australia data/samples/australia.csv --processing-d
 Choose `india`, `usa`, or `australia` and the matching sample file. The command prints each normalized record and its validation errors as JSON. It returns exit code 1 if any records have errors, and 2 if the file cannot be read or has the wrong columns. The processing date makes age and stale-member calculations repeatable. USA dates that have more than one valid interpretation are reported as ambiguous instead of guessed.
 
 This command reads files into memory and does not yet write to the database, resolve duplicates, or move members between countries. It is a local demonstration, not the production-scale processing engine.
+
+## Latest member profiles
+
+`skypoints.current_members.resolve_members` selects one current profile per global member ID using a source update timestamp. A newer profile in another country replaces the old one. Identical replays are accepted; conflicting profiles with the same timestamp are rejected. Timestamps must include a timezone. This in-memory function illustrates the rule and is not yet connected to the file reader or database. The supplied samples lack global IDs and update timestamps, so they cannot safely demonstrate country moves without additional source information.

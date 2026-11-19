@@ -24,3 +24,16 @@ See [docs/design.md](docs/design.md) for the proposed data flow, validation rule
 ## Database schema
 
 [`sql/schema.sql`](sql/schema.sql) defines the proposed Snowflake landing, staging, current-member, and redemption tables. The SQL is a starting point; the transformation and validation logic are still to come. Snowflake standard-table uniqueness constraints are not enforced, so the pipeline must check keys explicitly.
+
+## Try member validation
+
+Python 3 is the only requirement for this step. From the project directory:
+
+```sh
+python3 -m unittest discover -s tests -v
+python3 -m skypoints.members australia data/samples/australia.csv --processing-date 2023-01-01
+```
+
+Choose `india`, `usa`, or `australia` and the matching sample file. The command prints each normalized record and its validation errors as JSON. It returns exit code 1 if any records have errors, and 2 if the file cannot be read or has the wrong columns. The processing date makes age and stale-member calculations repeatable. USA dates that have more than one valid interpretation are reported as ambiguous instead of guessed.
+
+This command reads files into memory and does not yet write to the database, resolve duplicates, or move members between countries. It is a local demonstration, not the production-scale processing engine.

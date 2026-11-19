@@ -27,6 +27,14 @@ class PipelineTests(unittest.TestCase):
         load_members(self.db, "late", [self.member], self.processing_date)
         self.assertEqual(self.db.execute("SELECT country FROM current_member").fetchone()[0], "usa")
 
+    def test_same_source_event_reprocessed_on_another_day(self):
+        first = {**self.member, "age": 24, "stale_member": False}
+        second = {**self.member, "age": 25, "stale_member": True}
+        load_members(self.db, "first", [first], date(2024, 2, 3))
+        load_members(self.db, "second", [second], date(2025, 2, 3))
+        self.assertEqual(self.db.execute("SELECT count(*) FROM member_event").fetchone()[0], 1)
+        self.assertEqual(self.db.execute("SELECT age, stale_member FROM staged_member WHERE feed_id='second'").fetchone(), (25, 1))
+
     def test_bad_member_rolls_back_entire_feed(self):
         with self.assertRaises(ValueError):
             load_members(self.db, "bad", [self.member, {**self.member, "member_id": ""}], self.processing_date)

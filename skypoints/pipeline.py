@@ -118,7 +118,9 @@ def load_members(db, feed_id, records, processing_date, line_numbers=None):
             age = processing_date.year - dob.year - ((processing_date.month, processing_date.day) < (dob.month, dob.day)) if dob else None
             stale = int((processing_date - flight).days > 90) if flight else None
             updated = datetime.fromisoformat(record["source_updated_at"]).astimezone(timezone.utc).isoformat()
-            content = {**record, "source_updated_at": updated}
+            # Derived values depend on the processing date, not the source event.
+            content = {key: value for key, value in record.items() if key not in ("age", "stale_member")}
+            content["source_updated_at"] = updated
             payload = _encoded(content)
             previous = db.execute("SELECT payload FROM member_event WHERE member_id = ? AND updated_at = ?", (member_id, updated)).fetchone()
             if previous and previous[0] != payload:
